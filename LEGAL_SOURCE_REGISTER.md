@@ -38,8 +38,8 @@ Each entry MUST include:
 ### 4.1 Register table
 | Source ID | Source Title | Source Type | Issuing Authority | Status In Force | Access Path | Relevance to Supported Rule Families | Hierarchy Rank | Review Date | Update Procedure | Notes |
 |---|---|---|---|---|---|---|---:|---|---|---|
-| DK-LAW-001 | Danish Road Traffic Act (Consolidated) | Statutory law | TBD (official authority) | TBD | TBD (official access path, e.g. retsinformation.dk) | All supported V1 families (crossing, cycle-path exit, intersection, bus-stop, direct prohibited surfaces, driveway advisory) | 1 | TBD | See section 6 | Section/paragraph traceability TBD |
-| DK-EO-001 | Executive order / regulation defining relevant markings/signs (if applicable) | Executive order | TBD | TBD | TBD | Bus-stop marking logic; visible-unsupported sentinel inputs (sign categories) | 1 | TBD | See section 6 | Exact document TBD |
+| DK-LAW-001 | Bekendtgørelse af færdselsloven (Danish Road Traffic Act, Consolidated) — LBK nr 118 af 12/01/2026 | Statutory law | Transportministeriet | GÆLDENDE (retsinformation.dk display) | https://retsinformation.dk/eli/lta/2026/118 ; PDF: https://www.retsinformation.dk/api/pdf/254826 | All supported V1 families (crossing, cycle-path exit, intersection, bus-stop, direct prohibited surfaces, driveway advisory) | 1 | 2026-03-25 | See section 6 | Used for § 28, § 29, and § 95 traceability in Phase 0 |
+| DK-EO-001 | Executive order / regulation defining relevant markings/signs (if applicable) | Executive order | TBD | TBD | TBD | Marking / segment-definition rules under § 95 (if applicable) | 1 | TBD | See section 6 | Exact document TBD; keep as NEEDS_LEGAL_REVIEW until verified on retsinformation.dk |
 | DK-GUIDE-001 | Official public-authority guidance (national) | Guidance | TBD | TBD | TBD | Clarifies boundary concepts where law delegates to guidance (if any) | 2 | TBD | See section 6 | Optional; must be official |
 | DK-MUNI-001 | Municipal guidance for launch region | Municipal guidance | TBD | TBD | TBD | Launch-region operational notes; must not override statutory law | 2 | TBD | See section 6 | Only for launch region |
 

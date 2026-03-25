@@ -21,10 +21,10 @@ Each threshold entry MUST include:
 
 | Threshold ID | Rule Family | Numeric Threshold (m) | Boundary Reference Concept (normative) | Applies When | Controlling Source Traceability | Notes |
 |---|---|---:|---|---|---|---|
-| TH-CR-005M | pedestrian_crossing_5m | 5.0 | Shortest ground-plane distance from nearest legally relevant point of the evaluated vehicle footprint to the correct crossing approach boundary (rule-family specific) | Threshold-based crossing approach restriction cases | TBD: DK-LAW-001 §/stk + any executive order if needed | Must refuse if approach side/boundary is ambiguous |
-| TH-CPX-005M | cycle_path_exit_5m | 5.0 | Shortest ground-plane distance from vehicle footprint to the legally relevant cycle-path-exit boundary (side selection depends on exit geometry) | Threshold-based cycle-path exit restriction cases | TBD: DK-LAW-001 §/stk | Must refuse if exit geometry cannot be resolved |
-| TH-INT-010M | intersection_10m | 10.0 | Shortest ground-plane distance from vehicle footprint to the nearest legally relevant transverse edge (carriageway edge; or where legally relevant, the nearest relevant cycle-path edge where geometries merge) | Threshold-based intersection restriction cases | TBD: DK-LAW-001 §/stk | Must not substitute centerlines or map node centroids |
-| TH-BS-012M | bus_stop_12m_fallback | 12.0 | Signed distance along curb/edge context: protected zone extends 12m on each side of the bus-stop sign when no marked segment exists and the sign is supportably localized | Unmarked bus-stop cases (fallback) | TBD: DK-LAW-001 §/stk + DK-EO-001 if applicable | Marked segment takes precedence when present |
+| TH-CR-005M | pedestrian_crossing_5m | 5.0 | Shortest ground-plane distance from nearest legally relevant point of the evaluated vehicle footprint to the correct crossing approach boundary (rule-family specific) | Threshold-based crossing approach restriction cases | DK-LAW-001 § 29, stk. 1, nr. 1 | Must refuse if approach side/boundary is ambiguous |
+| TH-CPX-005M | cycle_path_exit_5m | 5.0 | Shortest ground-plane distance from vehicle footprint to the legally relevant cycle-path-exit boundary (side selection depends on exit geometry) | Threshold-based cycle-path exit restriction cases | DK-LAW-001 § 29, stk. 1, nr. 1 | Must refuse if exit geometry cannot be resolved |
+| TH-INT-010M | intersection_10m | 10.0 | Shortest ground-plane distance from vehicle footprint to the nearest legally relevant transverse edge (carriageway edge; or where legally relevant, the nearest relevant cycle-path edge where geometries merge) | Threshold-based intersection restriction cases | DK-LAW-001 § 29, stk. 1, nr. 2 | Must not substitute centerlines or map node centroids |
+| TH-BS-012M | bus_stop_12m_fallback | 12.0 | Signed distance along curb/edge context: protected zone extends 12m on each side of the bus-stop sign when no marked segment exists and the sign is supportably localized | Unmarked bus-stop cases (fallback) | DK-LAW-001 § 29, stk. 2 | Marked segment takes precedence when present |
 
 ## 4. Non-threshold (overlap) legal constants
 Some rule families are overlap-based rather than threshold-based.
@@ -32,8 +32,8 @@ They MUST be evaluated as overlap between the evaluated vehicle footprint and th
 
 | Constant ID | Rule Family | Constant Type | Boundary/Zone Concept | Controlling Source Traceability | Notes |
 |---|---|---|---|---|---|
-| OV-PS-001 | direct_prohibited_surfaces | overlap | Vehicle footprint overlap with directly prohibited surfaces (e.g., cycle path, footway, refuge, island/median-like protected structures) where within supported scope and safely localized | TBD: DK-LAW-001 §/stk + DK-EO-001 if applicable | Must refuse if surface cannot be localized safely |
-| BS-MARK-SEG | bus_stop_marked_segment | overlap/segment | Vehicle footprint overlap with the marked prohibited bus-stop segment where road marking defines extent | TBD: DK-EO-001 + DK-LAW-001 | Marking detection/localization required |
+| OV-PS-001 | direct_prohibited_surfaces | overlap | Vehicle footprint overlap with directly prohibited surfaces (e.g., cycle path, footway, refuge, island/median-like protected structures) where within supported scope and safely localized | DK-LAW-001 § 28, stk. 3 | Must refuse if surface cannot be localized safely. Interpretation note: § 28, stk. 3 has an exception outside built-up areas for vehicles with permitted total weight ≤ 3,500 kg, and the first sentence does not apply to bicycles and two-wheeled mopeds. |
+| BS-MARK-SEG | bus_stop_marked_segment | overlap/segment | Vehicle footprint overlap with the marked prohibited bus-stop segment where road marking defines extent | DK-LAW-001 § 29, stk. 2 (afmærket strækning); marking/segment-definition under DK-LAW-001 § 95 — DK-EO-001 NEEDS_LEGAL_REVIEW | Marking detection/localization required |
 
 ## 5. Advisory-first (not hard legal clearance)
 Driveway obstruction is advisory-first in Version 1.

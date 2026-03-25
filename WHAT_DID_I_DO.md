@@ -30,3 +30,25 @@
 - Deliverable: Complete traceability for intersection (10m), pedestrian crossing (5m), cycle-path exit (5m), bus stop (12m/segment), and prohibited surfaces.
 - Rule: If any item cannot be supported by a verified official source, flag that specific item as `NEEDS_LEGAL_REVIEW` with precise reason, and continue with the remaining items.
 
+### 2026-03-25 — END — Populate official-source traceability (T-0002, T-0003)
+
+- Updated LEGAL_SOURCE_REGISTER.md:
+	- DK-LAW-001 populated from retsinformation.dk canonical ELI page:
+		- Source Title: Bekendtgørelse af færdselsloven (Danish Road Traffic Act, Consolidated) — LBK nr 118 af 12/01/2026
+		- Issuing authority: Transportministeriet
+		- Status in force: GÆLDENDE (retsinformation.dk display)
+		- Access: https://retsinformation.dk/eli/lta/2026/118 ; PDF: https://www.retsinformation.dk/api/pdf/254826
+		- Review date set to baseline: 2026-03-25
+	- DK-EO-001 kept as placeholder and explicitly treated as NEEDS_LEGAL_REVIEW for marking/segment-definition rules (if applicable) under § 95.
+
+- Updated LEGAL_THRESHOLDS.md (controlling source traceability):
+	- TH-CR-005M → DK-LAW-001 § 29, stk. 1, nr. 1
+	- TH-CPX-005M → DK-LAW-001 § 29, stk. 1, nr. 1
+	- TH-INT-010M → DK-LAW-001 § 29, stk. 1, nr. 2
+	- TH-BS-012M (12m fallback when no marked segment exists) → DK-LAW-001 § 29, stk. 2
+	- OV-PS-001 → DK-LAW-001 § 28, stk. 3, with interpretation note about exceptions (outside built-up areas for vehicles ≤ 3,500 kg; first sentence not applicable to bicycles and two-wheeled mopeds)
+	- BS-MARK-SEG → DK-LAW-001 § 29, stk. 2, with DK-EO-001 NEEDS_LEGAL_REVIEW kept strictly for marking/segment-definition under § 95 (not for the 12m threshold)
+
+- Notes:
+	- Fixed a text encoding issue so that “GÆLDENDE” and “§” render correctly in the register table.
+
