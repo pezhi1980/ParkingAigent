@@ -52,3 +52,23 @@
 - Notes:
 	- Fixed a text encoding issue so that “GÆLDENDE” and “§” render correctly in the register table.
 
+### 2026-03-25 — START — Resolve delegated implementing instrument(s) for markings/"marked segment" (DK-EO-001)
+
+- Objective: Close the remaining Phase 0 traceability gap where the act delegates marking/road-signage details (e.g., "marked segment" / road markings) to implementing instruments under § 95, so DK-EO-001 can be replaced with verified retsinformation.dk sources.
+- Constraint: Retsinformation search/UI is SPA/JavaScript-heavy and intermittently blocks non-JS access; avoid guessing URLs/IDs.
+
+### 2026-03-25 — END — Resolve delegated implementing instrument(s) for markings/"marked segment" (DK-EO-001)
+
+- Actions taken:
+	- Confirmed machine-readable variants are reachable for the consolidated act, and fetched the raw HTML representation:
+		- https://www.retsinformation.dk/eli/lta/2026/118/rawhtml
+	- Attempted to locate embedded internal document identifiers or link-group data in raw HTML (e.g., `api/document`, `documentId`, `accessionNumber`, `documentLinkGroups`, “Alle bekendtgørelser…”), but no such identifiers were observable in the fetched content.
+	- Continued SPA reverse-engineering approach (from earlier step): inspected the main JS bundle (previously fetched) and identified likely backend endpoints powering “related documents” / “Yderligere dokumenter”, notably patterns resembling:
+		- `/document/{id}/references/{flag}`
+		- `/document/documentLinks/{type}/{data}`
+	- Tested direct API calls using several candidate IDs derived from ELI/XML metadata (e.g., unique document id / DG-style id / A-style accession-like id), but responses were “Siden blev ikke fundet” (page not found), indicating the API expects a different internal identifier.
+
+- Current status:
+	- DK-EO-001 remains `NEEDS_LEGAL_REVIEW` because the exact implementing instrument(s) governing road markings/vejafmærkning (needed to define/interpret “marked segment”) have not yet been enumerated from an official retsinformation.dk endpoint or page.
+	- Next technical step: find the mapping from ELI (e.g., `/eli/lta/2026/118`) to the SPA’s internal `{id}` used by the `/document/{id}/...` endpoints, then expand the “Alle bekendtgørelser m.v. og cirkulærer m.v. til denne lovbekendtgørelse” link group via `/document/documentLinks/{type}/{data}`.
+
