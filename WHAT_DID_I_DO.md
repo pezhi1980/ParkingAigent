@@ -72,3 +72,22 @@
 	- DK-EO-001 remains `NEEDS_LEGAL_REVIEW` because the exact implementing instrument(s) governing road markings/vejafmærkning (needed to define/interpret “marked segment”) have not yet been enumerated from an official retsinformation.dk endpoint or page.
 	- Next technical step: find the mapping from ELI (e.g., `/eli/lta/2026/118`) to the SPA’s internal `{id}` used by the `/document/{id}/...` endpoints, then expand the “Alle bekendtgørelser m.v. og cirkulærer m.v. til denne lovbekendtgørelse” link group via `/document/documentLinks/{type}/{data}`.
 
+### 2026-03-28 — START — Retsinformation internal discovery for DK-EO-001 (routing + doc-type keys)
+
+- Objective: Find a verifiable retsinformation.dk path to enumerate implementing instruments under Færdselsloven § 95 (DK-EO-001), especially those governing road markings/“marked segment” semantics.
+- Constraint: Open Data API is limited; retsinformation.dk SPA blocks sourcemaps and many non-JS routes.
+
+### 2026-03-28 — END — Retsinformation internal discovery for DK-EO-001 (routing + doc-type keys)
+
+- Actions taken:
+	- Confirmed the Open Data API limitation via Swagger: `/v1/Documents` supports only a `date` parameter and is constrained to “within the last 10 days”, so it cannot be used for historical keyword search.
+	- Performed keyword scan on the ELI update feed for road-marking terms (e.g., `vejafmærkning`, `afmærkning`) with no hits in the recent window.
+	- Inspected ELI sitemap index and concluded sitemap URLs do not embed searchable titles/keywords.
+	- Identified multiple internal API strings by inspecting the site’s JS bundle; confirmed only a subset of `/api/extremesearch/*` endpoints return JSON (e.g., `GetLawRegisters`, `GetFobTags`, `getcasehistorystatus`) while many plausible “search” endpoints return SPA HTML.
+	- Fetched and parsed the internal JSON endpoint `https://www.retsinformation.dk/api/eli/routing-data`.
+		- Extracted `docTypeUrlParameterMap` keys (110 total) including (non-exhaustive): `bek`, `lbk`, `cir`, `reg`, `vej`, etc.
+		- Noted PowerShell 5.1 `ConvertFrom-Json` lacks `-Depth`; used Python JSON parsing to extract the doc-type keys reliably.
+
+- Current status:
+	- DK-EO-001 remains unresolved, but the discovered doc-type URL parameter keys provide a concrete handle for next-step enumeration of candidate “bekendtgørelse”/“vejledning”/marking-related instruments.
+
