@@ -91,3 +91,43 @@
 - Current status:
 	- DK-EO-001 remains unresolved, but the discovered doc-type URL parameter keys provide a concrete handle for next-step enumeration of candidate “bekendtgørelse”/“vejledning”/marking-related instruments.
 
+### 2026-03-29 — START — Minimal Phase 0 traceability patch (EO correction + bus-stop marked-segment narrowing)
+
+- Scope: documentation-only changes limited to LEGAL_SOURCE_REGISTER.md, LEGAL_THRESHOLDS.md, TASKLIST_V4_FINAL.md, WHAT_DID_I_DO.md.
+- Constraint check: TH-BS-012M must remain unchanged.
+
+### 2026-03-29 — END — Minimal Phase 0 traceability patch (EO correction + bus-stop marked-segment narrowing)
+
+- Updated LEGAL_SOURCE_REGISTER.md:
+	- DK-EO-001 corrected to BEK nr 425 af 13/04/2023 (GÆLDENDE) with verified ELI + PDF.
+	- DK-EO-002 kept as BEK nr 426 af 13/04/2023 (GÆLDENDE) and PDF link normalized to the official `/api/pdf/...` endpoint.
+	- BEK nr 2511 af 09/12/2021 recorded only as HISTORISK predecessor (new entry), not as controlling.
+
+- Updated LEGAL_THRESHOLDS.md:
+	- TH-BS-012M unchanged.
+	- BS-MARK-SEG traceability tightened to cite the specific EO sections that define T 61/T 63 meaning and use (without claiming segment-extent start/continuity semantics are resolved).
+
+- Updated TASKLIST_V4_FINAL.md:
+	- Phase 0 blocker narrowed: remaining gap is specifically bus-stop marked-segment segment-extent semantics (start/continuity/gaps).
+
+### 2026-03-29 — START — Minimal Phase 0 traceability patch #2 (BS-MARK-SEG citations tightening + blocker precision)
+
+- Scope: documentation-only changes limited to LEGAL_SOURCE_REGISTER.md, LEGAL_THRESHOLDS.md, TASKLIST_V4_FINAL.md, WHAT_DID_I_DO.md.
+- Constraint check: TH-BS-012M must remain unchanged.
+- Goal: Strengthen the citations for BS-MARK-SEG without overclaiming start-of-segment or continuity/gap semantics.
+
+### 2026-03-29 — END — Minimal Phase 0 traceability patch #2 (BS-MARK-SEG citations tightening + blocker precision)
+
+- Updated LEGAL_THRESHOLDS.md:
+	- BS-MARK-SEG now records (explicitly) that DK-LAW-001 § 29, stk. 2 provides the “den afmærkede strækning” basis and the 12m fallback when not marked.
+	- BS-MARK-SEG now records (explicitly) that DK-EO-001 (BEK 425) § 60 (T 61) can mark the bus-stop prohibition under § 29, stk. 2.
+	- DK-EO-001 (BEK 425) § 1, stk. 2 is recorded only as limited support for minor deviations, and explicitly not treated as a locked rule for start/continuity/gap semantics.
+	- BS-MARK-SEG remains NOT fully resolved/locked: start-of-segment semantics and continuity/gap semantics remain `NEEDS_LEGAL_REVIEW` from the currently locked official text.
+
+- Updated TASKLIST_V4_FINAL.md:
+	- T-0003 blocker wording tightened so the only remaining blocker is: exact start-of-segment semantics and continuity/gap semantics for BS-MARK-SEG remain unverified from the currently locked official text.
+	- T-0009 blocker wording updated to match the same narrowed semantic gap.
+
+- Updated LEGAL_SOURCE_REGISTER.md:
+	- DK-EO-001 relevance text clarified to reflect BS-MARK-SEG citations: T 61 meaning support (and limited minor-deviation support via § 1, stk. 2), without implying bus-stop end-of-segment semantics.
+

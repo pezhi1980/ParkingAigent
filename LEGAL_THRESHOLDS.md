@@ -33,7 +33,7 @@ They MUST be evaluated as overlap between the evaluated vehicle footprint and th
 | Constant ID | Rule Family | Constant Type | Boundary/Zone Concept | Controlling Source Traceability | Notes |
 |---|---|---|---|---|---|
 | OV-PS-001 | direct_prohibited_surfaces | overlap | Vehicle footprint overlap with directly prohibited surfaces (e.g., cycle path, footway, refuge, island/median-like protected structures) where within supported scope and safely localized | DK-LAW-001 § 28, stk. 3 | Must refuse if surface cannot be localized safely. Interpretation note: § 28, stk. 3 has an exception outside built-up areas for vehicles with permitted total weight ≤ 3,500 kg, and the first sentence does not apply to bicycles and two-wheeled mopeds. |
-| BS-MARK-SEG | bus_stop_marked_segment | overlap/segment | Vehicle footprint overlap with the marked prohibited bus-stop segment where road marking defines extent | DK-LAW-001 § 29, stk. 2 (afmærket strækning); marking/segment-definition under DK-LAW-001 § 95 — DK-EO-001 NEEDS_LEGAL_REVIEW | Marking detection/localization required |
+| BS-MARK-SEG | bus_stop_marked_segment | overlap/segment | Vehicle footprint overlap with the marked prohibited bus-stop segment where road marking defines extent | DK-LAW-001 § 29, stk. 2 (den afmærkede strækning + 12m fallback when not marked); DK-EO-001 (BEK 425) § 60 (T 61: can mark the bus-stop prohibition under § 29, stk. 2); DK-EO-001 (BEK 425) § 1, stk. 2 (minor deviations support only; does not lock start/continuity/gap semantics). Exact start-of-segment semantics and continuity/gap semantics for deriving the segment extent from markings remain NEEDS_LEGAL_REVIEW (not explicit in the currently locked official text). | Marking detection/localization required; do not treat segment-extent semantics as fully locked |
 
 ## 5. Advisory-first (not hard legal clearance)
 Driveway obstruction is advisory-first in Version 1.
@@ -42,4 +42,6 @@ Driveway obstruction is advisory-first in Version 1.
 
 ## 6. Traceability status
 - The numeric baseline is locked by DK_PARKING_AGENT_MASTER_SPEC_V4_FINAL.md section 10.
-- Official legal-source traceability is currently `TBD` and blocks Phase 0 validation (T-0009).
+- Official legal-source traceability is partially complete.
+	- Statutory threshold anchors for 5m/10m/12m are linked to DK-LAW-001 as locked.
+	- Remaining open item: bus-stop marked-segment marking/segment-definition section/paragraph mapping within DK-EO-001/DK-EO-002 (kept as NEEDS_LEGAL_REVIEW).
