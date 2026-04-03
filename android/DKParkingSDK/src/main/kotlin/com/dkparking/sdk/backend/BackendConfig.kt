@@ -18,7 +18,7 @@ data class BackendConfig(
     companion object {
         /** Shared instance — set once at app startup. */
         var shared: BackendConfig = BackendConfig(
-            baseUrl = "https://dk-parking-backend.onrender.com",
+            baseUrl = "https://dk-parking-agent.onrender.com",
             apiKey  = ""   // Set via BackendConfig.shared = BackendConfig(...) at startup
         )
     }

@@ -21,7 +21,7 @@ public struct BackendConfig {
 
     /// Shared instance — set this once at app startup before any SDK calls.
     public static var shared: BackendConfig = BackendConfig(
-        baseURL: URL(string: "https://dk-parking-backend.onrender.com")!,
+        baseURL: URL(string: "https://dk-parking-agent.onrender.com")!,
         apiKey: ""   // Set via BackendConfig.shared = BackendConfig(baseURL:apiKey:) at startup
     )
 }
