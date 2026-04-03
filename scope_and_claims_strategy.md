@@ -1,6 +1,6 @@
 # SCOPE AND CLAIMS STRATEGY — DK PARKING ENGINE
 ## Version 1 — Phase 0 foundation document
-## Status: IN_PROGRESS
+## Status: DONE
 ## Locked baseline date: 2026-03-25
 
 ## 1. Purpose
@@ -49,5 +49,24 @@ If visible unsupported restrictions are detected/suspected:
 - the product must not imply clean clearance
 - claims must remain conservative
 
-## 8. Current status
-This strategy is incomplete until the validation gate checkpoints are tied to later-phase validation documents and release blockers.
+## 8. Validation gate checkpoints (phase-linked)
+
+The following checkpoints govern when scope may advance, when claims may strengthen, and when release may proceed. Each checkpoint references the phase where evidence is produced.
+
+| Checkpoint ID | Gate Condition | Blocking Phase | Passes When |
+|---|---|---|---|
+| VG-001 | Scope entry gate | Before Phase 2 implementation | LEGAL_THRESHOLDS.md and SCOPE_AND_LIMITATIONS.md are complete and consistent for all V1 families |
+| VG-002 | SDK and output contract gate | Before Phase 9 (vertical slice) | OUTPUT_CONTRACT.md includes provenance fields for all V1 families |
+| VG-003 | Dataset gate | Before Phase 9 | dataset_strategy.md + feature_schema_spec.md exist and cover all V1 families |
+| VG-004 | Pre-slice claim gate | Before public testing | At least one supported family result path produces correct structured output with limitations notice and version reference |
+| VG-005 | Near-threshold validation gate | Before claim strengthening | Phase 10 field test matrix demonstrates false-confidence rate is acceptably controlled near thresholds for each supported family |
+| VG-006 | Refusal adequacy gate | Before claim strengthening | Phase 10 demonstrates UNVERIFIABLE is returned in all expected failure conditions |
+| VG-007 | Unsupported restriction gate | Before public release | Visible-unsupported sentinel behavior is tested and demonstrated for at least one unsupported visible restriction type |
+| VG-008 | Version traceability gate | Before public release | Every user-visible result includes dataset version, model version, and policy version in the output |
+| VG-009 | Launch scope lock gate | Before public launch | launch_scope_register.md (Phase 1+) is complete, bounded, and consistent with SCOPE_AND_LIMITATIONS.md and CLAIMS_POLICY.md |
+| VG-010 | Advisory-to-supported promotion gate | Before promoting advisory family | Dedicated validation plan section exists; Phase 10 guardrails met for the promoted family; CLAIMS_POLICY.md updated |
+
+## 9. Blocking behavior
+If any validation gate checkpoint is not met, the associated phase or release step MUST remain blocked.
+A checkpoint may not be bypassed by convenience, schedule pressure, or partial evidence.
+Any bypass attempt must be recorded as a REFUSED action in WHAT_DID_I_DO.md.

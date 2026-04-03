@@ -1,6 +1,6 @@
 # SCOPE AND LIMITATIONS — DK PARKING ENGINE
 ## Version 1 — Phase 0 foundation document
-## Status: IN_PROGRESS
+## Status: DONE
 ## Locked baseline date: 2026-03-25
 
 ## 1. Purpose
@@ -64,7 +64,35 @@ Every user-visible result MUST include (or map to) a limitations notice stating 
 - other restrictions (signs, temporary controls, permits, private rules) may still apply,
 - refusal is correct behavior when evidence is insufficient.
 
-## 10. Scope change control (summary)
+## 10. Per-family disclosure wording (mandatory vocabulary — locked)
+
+These disclosures MUST be used verbatim or in substance for each supported family. They define what the product may and may not claim per rule family.
+
+### 10.1 Pedestrian crossing (5m)
+Disclosure: "This result evaluates only the 5-metre stopping/parking restriction near a pedestrian crossing, based on the evaluated vehicle footprint and the localized crossing approach boundary. Other restrictions at this location may also apply."
+
+### 10.2 Cycle-path exit (5m)
+Disclosure: "This result evaluates only the 5-metre stopping/parking restriction near a cycle-path exit, based on the evaluated vehicle footprint and the localized exit boundary. Other restrictions at this location may also apply."
+
+### 10.3 Intersection (10m)
+Disclosure: "This result evaluates only the 10-metre stopping/parking restriction near an intersection, based on the evaluated vehicle footprint and the localized transverse edge boundary. Other restrictions at this location may also apply."
+
+### 10.4 Direct prohibited surfaces (overlap)
+Disclosure: "This result evaluates only whether the evaluated vehicle footprint overlaps a directly prohibited surface (such as a cycle path, footway, or refuge) within the supported detection scope. Other restrictions at this location may also apply."
+
+### 10.5 Bus stop — marked segment
+Disclosure: "This result evaluates only the bus-stop stopping/parking restriction based on the localized marked segment extent. If the marked segment extent could not be clearly resolved, a 12-metre fallback from the bus-stop sign was applied. Other restrictions at this location may also apply."
+
+### 10.6 Bus stop — 12m fallback (unmarked)
+Disclosure: "This result evaluates only the 12-metre bus-stop stopping/parking restriction measured from the localized bus-stop sign. Other restrictions at this location may also apply."
+
+### 10.7 Advisory-first (driveway/access)
+Disclosure: "This is an advisory indication only. The system cannot make a hard legal determination about driveway obstruction or property-access hindrance in Version 1. Treat this as a caution, not a legal finding."
+
+### 10.8 Universal limitation notice (mandatory for ALL results)
+"This app evaluates only specific supported Danish stopping and parking rules within the active region dataset. It does not evaluate all Danish parking rules and does not override signs, temporary controls, permits, payment obligations, or any other restriction outside supported scope. Refusal or an uncertain result is correct and safe behavior when evidence is insufficient."
+
+## 11. Scope change control (summary)
 Any change in supported families, advisory-first status, or limitation language requires formal change control and updates across:
 - CLAIMS_POLICY.md
 - DECISION_STATES.md

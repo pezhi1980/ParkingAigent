@@ -244,7 +244,7 @@ Version 1 must fully support:
 - unmarked bus-stop 12 metre evaluation where the sign and boundary are supportable
 - deterministic refusal behavior
 - offline dataset use after activation
-- iOS implementation first
+- iOS and Android implementations in parallel (Version 1 targets both platforms simultaneously)
 
 ### 7.2 Advisory-first in Version 1
 
@@ -281,7 +281,7 @@ The minimum acceptable public launch scope is not “all supported rules in one 
 The minimum acceptable launch scope is:
 
 - one city or one tightly bounded region
-- iOS
+- iOS and Android (parallel Version 1 targets)
 - downloadable region dataset
 - one end-to-end supported result flow
 - one stable retry flow

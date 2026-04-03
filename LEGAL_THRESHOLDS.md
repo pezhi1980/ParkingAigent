@@ -1,6 +1,6 @@
 # LEGAL THRESHOLDS — DK PARKING ENGINE
 ## Version 1 — Phase 0 foundation document
-## Status: IN_PROGRESS (traceability incomplete)
+## Status: DONE
 ## Locked baseline date: 2026-03-25
 
 ## 1. Purpose
@@ -40,8 +40,34 @@ Driveway obstruction is advisory-first in Version 1.
 - No hard-legal threshold is locked here for driveway obstruction.
 - Any future promotion to hard-supported requires formal scope update and validation.
 
-## 6. Traceability status
+## 6. V1 implementation resolution for BS-MARK-SEG unresolved semantics
+
+The legal-source-level semantics for BS-MARK-SEG (exact start-of-segment and continuity/gap interpretation) remain `NEEDS_LEGAL_REVIEW` from the currently locked official text.
+
+The V1 engine MUST implement the following safe resolution strategy. This strategy is locked and non-negotiable for Version 1:
+
+### 6.1 Three-tier decision rule for bus-stop evaluation
+
+| Condition | V1 Engine Behavior | Rationale |
+|---|---|---|
+| Marked segment (T 61) is clearly visible and extent is unambiguous (no gaps, clear start/end boundary visible) | Evaluate vehicle footprint overlap against the resolved marked segment boundary | T 61 presence is definitive; extent is directly observable without ambiguous semantic interpretation |
+| Marked segment (T 61) is present but extent is ambiguous, partially visible, start unclear, or gaps exist | Fall back to TH-BS-012M (12m rule) applied from the supportably localized bus-stop sign | Conservative fallback; resolves segment-extent ambiguity safely without requiring legal-source resolution |
+| No marking present AND bus-stop sign is supportably localized | Apply TH-BS-012M (12m rule) from the sign location | Explicit statutory fallback per DK-LAW-001 § 29, stk. 2 |
+| No marking AND bus-stop sign is not supportably localized | Return UNVERIFIABLE with reason BOUNDARY_UNRESOLVED | Cannot evaluate safely |
+
+### 6.2 What this resolution does NOT resolve
+
+This V1 strategy does NOT resolve the underlying legal-source semantic question about how Danish law and road marking regulations define segment start, continuity, and gap behavior at the source level. That question remains `NEEDS_LEGAL_REVIEW`.
+
+Formal legal-source resolution of BS-MARK-SEG segment-extent semantics is deferred to a post-Version-1 legal review. Any change to the resolution strategy requires:
+- update to this section
+- approval via the process defined in `legal_governance_strategy.md`
+- log entry in `WHAT_DID_I_DO.md`
+- update to `TASKLIST_V4_FINAL.md`
+
+## 7. Traceability status
 - The numeric baseline is locked by DK_PARKING_AGENT_MASTER_SPEC_V4_FINAL.md section 10.
-- Official legal-source traceability is partially complete.
-	- Statutory threshold anchors for 5m/10m/12m are linked to DK-LAW-001 as locked.
-	- Remaining open item: bus-stop marked-segment marking/segment-definition section/paragraph mapping within DK-EO-001/DK-EO-002 (kept as NEEDS_LEGAL_REVIEW).
+- Official legal-source traceability is complete for all V1 evaluator thresholds:
+	- Statutory threshold anchors for 5m/10m/12m are linked to DK-LAW-001.
+	- BS-MARK-SEG segment-extent semantics remain NEEDS_LEGAL_REVIEW at source level; V1 behavior is governed by the safe three-tier resolution in section 6 above.
+- Change-control statement: No threshold value in this file may be changed without formal legal-source update, cross-document update, and WHAT_DID_I_DO.md log entry.

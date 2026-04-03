@@ -1,6 +1,6 @@
 # DECISION STATES — DK PARKING ENGINE
 ## Version 1 — Phase 0 foundation document
-## Status: IN_PROGRESS
+## Status: DONE
 ## Locked baseline date: 2026-03-25
 
 ## 1. Purpose
@@ -92,11 +92,54 @@ The engine MUST follow the semantic ordering:
 10. If likely clearance but not strong enough → `PROBABLY_LEGAL`
 11. Otherwise → `UNVERIFIABLE`
 
-## 8. UI and copy obligations (Phase 0 minimum)
-This file does not define final UI copy, but it locks these obligations:
-- Every state shown to the user MUST include a limitations notice.
-- `UNVERIFIABLE` MUST be presented as normal/safe behavior.
-- The product MUST NOT imply that positive states override signs or other restrictions.
+## 8. UI and copy obligations (locked per state)
+
+This section locks the mandatory copy obligations for each state. Final UI wording is defined in `user_disclosures_and_copy.md` (Phase 1), but the obligations below are normative and may not be violated.
+
+### 8.1 ILLEGAL
+- UI MUST communicate: strong evidence of violation of the evaluated supported rule
+- UI MUST include limitations notice (only supported rule evaluated)
+- UI MUST NOT say: "you will get a fine" or imply certainty beyond supported scope
+- Retry guidance: not applicable for this state, but a re-evaluate option is allowed
+
+### 8.2 PROBABLY_ILLEGAL
+- UI MUST communicate: likely violation, but with higher uncertainty than ILLEGAL
+- UI MUST communicate: user should consider moving the vehicle as a safe precaution
+- UI MUST include limitations notice
+- UI MUST NOT present as definitive legal advice
+
+### 8.3 UNVERIFIABLE
+- UI MUST communicate: the system could not safely evaluate — this is normal and correct behavior
+- UI MUST provide the structured refusal reason in human-readable form (e.g., "target vehicle could not be clearly identified", "the boundary was not visible enough")
+- UI MUST provide retry guidance when a retry path exists
+- UI MUST NOT imply this is a user error
+- UI MUST NOT imply the parking is safe just because the system could not evaluate
+
+### 8.4 PROBABLY_LEGAL
+- UI MUST communicate: evidence suggests compliance for the evaluated rule, but confidence is not high enough for a strong positive result
+- UI MUST include limitations notice
+- UI MUST NOT present as full legal clearance
+- UI MUST NOT suppress the information that other restrictions may apply
+
+### 8.5 LEGAL_WITH_BUFFER
+- UI MUST communicate: the evaluated footprint appears to comply with the specific evaluated rule, with a measurable margin
+- UI MUST include limitations notice
+- UI MUST include a statement that only the evaluated supported rule was checked
+- UI MUST NOT use language implying universal parking legality (e.g., "safe to park here" without qualification)
+- UI MUST reference the active dataset version and evaluation scope
 
 ## 9. Advisory-first families
 Advisory-first outputs (e.g., driveway obstruction) must be labeled and must not share hard-legal certainty semantics unless formally promoted.
+- UI MUST use the word "advisory" or equivalent
+- UI MUST NOT show an advisory result using the same visual treatment as a hard-legal state
+- Advisory outputs MUST NOT produce ILLEGAL or LEGAL_WITH_BUFFER states without formal scope promotion
+
+## 10. Controlled vocabulary lock
+The following terms are locked. Future code, UI, and copy MUST use these exact state names internally:
+- `ILLEGAL`
+- `PROBABLY_ILLEGAL`
+- `UNVERIFIABLE`
+- `PROBABLY_LEGAL`
+- `LEGAL_WITH_BUFFER`
+
+Any addition of states requires formal scope change, update to this file, WHAT_DID_I_DO.md log, and TASKLIST_V4_FINAL.md update.
