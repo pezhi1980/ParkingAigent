@@ -757,6 +757,46 @@ T-0902 CANNOT be marked DONE until the above steps are completed by the user on 
 
 هر دو پلتفرم باید device run را پاس کنند قبل از Phase 10 و release.
 
+---
+
+### 2026-04-04 — Backend integration: Render API server + Supabase + iOS/Android clients
+
+Connected DK Parking Engine to Supabase (`qnvgtkxcdbirzoeceltt`) and Render (`srv-d4kctj3uibrs73fduhr0`).
+Per SYSTEM_ARCHITECTURE.md §12: legal decision path remains entirely on-device. Backend handles SS-04 (dataset delivery) and SS-10 (telemetry) only.
+
+**Files created:**
+
+`backend/` — Node.js/Express API server (deployed on Render):
+- `server.js` — Express app with helmet, CORS, rate limiting, health check, routes
+- `src/lib/supabase.js` — Supabase service-role client singleton
+- `src/middleware/auth.js` — X-API-Key validation middleware
+- `src/routes/telemetry.js` — `POST /api/v1/telemetry/batch`; validates event types; strips all forbidden fields (camera, GPS, user ID); stores to `telemetry_events` table
+- `src/routes/dataset.js` — `GET /api/v1/dataset/regions`, `GET /api/v1/dataset/regions/:id`, `GET /api/v1/dataset/regions/:id/check`; returns signed Supabase Storage download URLs
+- `.env.example` — SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MOBILE_API_KEY, PORT
+- `.gitignore` — node_modules/, .env
+- `README.md` — setup guide, Render config, curl examples
+- `supabase/schema.sql` — creates `telemetry_events` table (all fields per privacy_and_telemetry_spec.md §3), `dataset_regions` table (with REG-DK-001 seed row), RLS policies, indexes
+
+iOS SDK additions (`ios/DKParkingSDK/Sources/DKParkingSDK/Backend/`):
+- `TelemetryUploader.swift` — thread-safe async batch uploader; enqueue/flush; factory methods (evaluationCompleted, sessionStarted, sessionEnded); upload failures silently ignored per §12
+- `DatasetClient.swift` — async dataset version check, region info fetch, bundle download with SHA-256 verification; uses URLSession async/await
+
+Android SDK additions (`android/DKParkingSDK/src/main/kotlin/com/dkparking/sdk/backend/`):
+- `TelemetryUploader.kt` — coroutine-based async batch uploader; CopyOnWriteArrayList queue; companion object factory methods; upload failures silently ignored
+- `DatasetClient.kt` — suspend functions for version check, region info, and bundle download with SHA-256 verification; sealed class DatasetClientError
+
+**Architecture invariants preserved:**
+- Legal evaluation path (SS-01 to SS-07): NO network calls, NO change
+- Telemetry upload: async, non-blocking, failure-safe
+- No camera frames, no GPS, no user identifiers in any telemetry payload
+
+**Next steps for user (one-time setup):**
+1. Supabase: run `backend/supabase/schema.sql` in SQL Editor
+2. Supabase: create Storage bucket `dataset-bundles` (private)
+3. Render: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MOBILE_API_KEY in Environment tab
+4. Render: set Root Directory = `backend/`, Build = `npm install`, Start = `node server.js`
+5. iOS/Android apps: set `BackendConfig.baseURL` and `BackendConfig.apiKey` before calling TelemetryUploader or DatasetClient
+
 **Files committed in this session:**
 - `android/` — 22 files: DKParkingSDK (9 Kotlin + 3 tests + build), DKParkingVerticalSlice (5 files + build + manifest), settings/build/README/vertical_slice_report_android.md
 - `WHAT_DID_I_DO.md` — logged all Phase 9 Android work
