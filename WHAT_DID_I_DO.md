@@ -806,4 +806,46 @@ Android SDK additions (`android/DKParkingSDK/src/main/kotlin/com/dkparking/sdk/b
 - `VERSIONING_POLICY.md` — §9.4 updated Android launch gate
 - `SDK_API_CONTRACT.md` — §9 removed BLOCKED statement
 
+---
+
+## Session: 2026-04-04 — Alignment analysis, strategic decisions, Android Gradle fix
+
+### Work completed
+
+**app-agent.md (new file):**
+- Read-only analysis of main app (`C:\Users\Pezhm\dk-parking`) vs SDK Agent
+- Documented all stack differences (React+Gyro vs ARKit/ARCore)
+- Documented discrepancies: decision states (4 vs 5), legal thresholds (14m vs 5/10/12m)
+- Added section 9: strategic decision — ARCore/ARKit only path forward
+- Clarified that 14m in main app is intentional safety buffer (10m legal + 4m gyro error)
+
+**Android project — Gradle sync fix (T-0902):**
+- Created `android/DKParkingSDK/src/main/AndroidManifest.xml` (required for library module)
+- Created `android/DKParkingSDK/proguard-rules.pro`
+- Created `android/DKParkingSDK/consumer-rules.pro`
+- Created `android/DKParkingVerticalSlice/proguard-rules.pro`
+- Updated `android/DKParkingSDK/build.gradle.kts` — added `consumerProguardFiles` to release buildType
+- Project now opens and syncs cleanly in Android Studio
+
+**Commits this session:**
+- `5a9d58c` — Add app-agent.md: alignment report
+- `65cbf85` — Update app-agent.md: strategic decision, 14m intentional
+- `7534414` — T-0902 Android: add missing Gradle files for clean studio sync
+
+### Decisions locked this session
+
+| Decision | Value |
+|---|---|
+| Measurement technology going forward | ARCore/ARKit only (SDK Agent) |
+| Gyro-based main app | Keep as-is, no changes |
+| `LEGAL_LIMIT = 14.0` in main app | Intentional safety buffer — do not change |
+| SDK Agent legal thresholds | 5m / 10m / 12m — locked |
+
+### Pending (user action required)
+
+- T-0901 (iOS): physical device run — needs macOS + Xcode + physical iPhone
+- T-0902 (Android): unit tests + physical device run in Android Studio (app updated, test deferred)
+- Supabase: run `backend/supabase/schema.sql` in SQL Editor
+- Supabase: create `dataset-bundles` storage bucket
+
 
