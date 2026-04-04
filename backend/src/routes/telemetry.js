@@ -94,8 +94,8 @@ router.post('/batch', requireApiKey, async (req, res) => {
 
   const { error } = await supabase.from('telemetry_events').insert(rows);
   if (error) {
-    console.error('[telemetry] insert error:', error.message);
-    return res.status(500).json({ error: 'storage_failed' });
+    console.error('[telemetry] insert error:', error.message, error.code, error.details, error.hint);
+    return res.status(500).json({ error: 'storage_failed', _diag: { message: error.message, code: error.code, details: error.details, hint: error.hint } });
   }
 
   res.json({
