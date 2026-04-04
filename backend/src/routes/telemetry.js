@@ -110,4 +110,16 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+// GET /api/v1/telemetry/diag — diagnostic: checks telemetry_events table is reachable
+router.get('/diag', requireApiKey, async (req, res) => {
+  const { count, error } = await supabase
+    .from('telemetry_events')
+    .select('*', { count: 'exact', head: true });
+
+  if (error) {
+    return res.status(500).json({ ok: false, error: error.message, code: error.code });
+  }
+  res.json({ ok: true, row_count: count });
+});
+
 module.exports = router;
