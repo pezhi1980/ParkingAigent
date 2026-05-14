@@ -4,6 +4,7 @@
 
 import SwiftUI
 import ARKit
+import UIKit
 import DKParkingSDK
 
 // MARK: - View model
@@ -15,9 +16,15 @@ final class VerticalSliceViewModel: ObservableObject {
     @Published var sessionIsValid: Bool = false
     @Published var result: ParkingEvaluationResult?
     @Published var isEvaluating: Bool = false
+    // [UX] Front/rear measurement direction toggle
+    @Published var isFrontMeasurement: Bool = true
+    // [UX] Real-time distance estimate shown in overlay (nil = not yet measured)
+    @Published var realtimeDistanceEstimateM: Double? = nil
 
     private let engine: ParkingEvaluationEngine
     private var lastQuality: ARSessionQuality = .invalid
+    // [UX] Tracks previous session validity to trigger haptic only on transition
+    private var wasSessionValid: Bool = false
 
     init() {
         let policy = PolicyRegistry.v1Default
@@ -51,12 +58,25 @@ final class VerticalSliceViewModel: ObservableObject {
     func updateQuality(from frame: ARFrame) {
         let quality = engine.currentQuality(from: frame)
         lastQuality = quality
-        sessionIsValid = quality.isValid
+        let nowValid = quality.isValid
+        // [UX] Haptic: single pulse when session transitions from not-ready to ready
+        if nowValid && !wasSessionValid {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+        wasSessionValid = nowValid
+        sessionIsValid = nowValid
         if quality.isValid {
             sessionQualityLabel = String(format: "Ready — scale: %.2f  plane: %.2f",
                                          quality.metricScaleScore, quality.planeStabilityScore)
+            // [FIX-1] Real-time distance estimate: distance from camera position to synthetic
+            // boundary plane (z = -8.5 in AR world). In production this uses the real detected
+            // vehicle footprint edge + localized legal boundary, not camera position.
+            let camZ = Double(frame.camera.transform.columns.3.z)
+            let syntheticBoundaryZ = -8.5
+            realtimeDistanceEstimateM = max(0.0, camZ - syntheticBoundaryZ)
         } else {
             sessionQualityLabel = "Hold still — establishing measurement…"
+            realtimeDistanceEstimateM = nil
         }
     }
 
@@ -67,24 +87,30 @@ final class VerticalSliceViewModel: ObservableObject {
         guard !isEvaluating, sessionIsValid else { return }
         isEvaluating = true
 
-        // Vertical slice: pedestrian_crossing_5m
-        // Synthetic geometry: vehicle edge at 6.8m from boundary → expected LEGAL_WITH_BUFFER
-        let vehicleEdge = simd_float3(0, 0, 0)
-        let boundaryStart = simd_float3(-3, 0, -6.8)
-        let boundaryEnd   = simd_float3( 3, 0, -6.8)
+        // [FIX-3] Use isFrontMeasurement to select the legally relevant vehicle edge.
+        // Rule: intersection_10m (§ 28 stk. 1 pt. 2 — 10m from intersection transverse edge).
+        // Synthetic geometry: intersection boundary at z = -8.5 in AR world.
+        //   Front bumper at (0,0,0)   → 8.5m < 10m → expected PROBABLY_ILLEGAL
+        //   Rear  bumper at (0,0,3.8) → 12.3m > 10m → expected LEGAL_WITH_BUFFER
+        // This demonstrates why measuring from the correct end of the vehicle matters.
+        let vehicleEdge: simd_float3 = isFrontMeasurement
+            ? simd_float3(0, 0, 0)       // front bumper
+            : simd_float3(0, 0, 3.8)     // rear bumper (assumes ~4m vehicle length)
+        let boundaryStart = simd_float3(-3, 0, -8.5)
+        let boundaryEnd   = simd_float3( 3, 0, -8.5)
 
         let input = EvaluationInput(
             arFrame: frame,
             sessionQuality: lastQuality,
-            ruleFamily: .pedestrianCrossing5m,
+            ruleFamily: .intersection10m,
             vehicleFootprintEdgePoint: vehicleEdge,
             legalBoundaryLineStart: boundaryStart,
             legalBoundaryLineEnd: boundaryEnd,
             boundaryProvenance: .mapPriorAssisted,
             footprintQualityScore: 0.82,
             partialOcclusionDetected: false,
-            candidateFeatureId: "REG-DK-001-PC-00001",
-            candidateFeatureType: "PEDESTRIAN_CROSSING",
+            candidateFeatureId: "REG-DK-001-INT-00001",
+            candidateFeatureType: "INTERSECTION",
             candidateConfidenceScore: 0.80,
             candidateSelectionBasis: "visual_confirmation_assisted",
             alternativeCandidatesRejected: 0,
@@ -93,12 +119,19 @@ final class VerticalSliceViewModel: ObservableObject {
         )
 
         result = engine.evaluate(input: input)
+        // [UX] Haptic: notify user when evaluation result is ready
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
         isEvaluating = false
     }
 
     func reset() {
         result = nil
         sessionQualityLabel = sessionIsValid ? "Ready — tap Evaluate" : "Hold still — establishing measurement…"
+    }
+
+    // [UX] Toggle between measuring from front or rear of vehicle
+    func toggleMeasurementDirection() {
+        isFrontMeasurement.toggle()
     }
 }
 
@@ -134,6 +167,12 @@ struct VerticalSliceRootView: View {
                 Color.black.ignoresSafeArea()
             }
 
+            // [UX] Alignment guide overlay — hidden when result card is showing
+            if vm.result == nil {
+                alignmentOverlay
+                    .ignoresSafeArea()
+            }
+
             VStack(spacing: 0) {
                 statusBanner
                 if let result = vm.result {
@@ -166,7 +205,8 @@ struct VerticalSliceRootView: View {
                 .font(.caption)
                 .foregroundColor(.white)
             Spacer()
-            Text("pedestrian_crossing_5m")
+            // [FIX-3] Dynamic rule family label — reflects isFrontMeasurement selection
+            Text(vm.isFrontMeasurement ? "intersection_10m · front" : "intersection_10m · rear")
                 .font(.caption2)
                 .foregroundColor(.white.opacity(0.7))
         }
@@ -175,13 +215,74 @@ struct VerticalSliceRootView: View {
         .background(.ultraThinMaterial)
     }
 
+    // [UX] Alignment guide overlay: two framing zones + real-time distance label.
+    // Top zone = legal boundary (street corner). Bottom zone = vehicle edge.
+    // Zones turn green when AR session is ready. Hidden while result card is shown.
+    private var alignmentOverlay: some View {
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                // Top zone: legal boundary / سر خیابان
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(vm.sessionIsValid ? Color.green : Color.white.opacity(0.5), lineWidth: 2)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.06)))
+                    .overlay(
+                        Text("Street Corner / سر خیابان")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                    )
+                    .frame(height: geo.size.height * 0.22)
+                    .padding(.horizontal, 40)
+
+                Spacer()
+
+                // Real-time distance estimate
+                if let dist = vm.realtimeDistanceEstimateM {
+                    Text(String(format: "≈ %.1f m", dist))
+                        .font(.title2.bold())
+                        .foregroundColor(.white)
+                        .shadow(radius: 2)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+
+                // Bottom zone: vehicle front or rear / جلو یا عقب ماشین
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(vm.sessionIsValid ? Color.green : Color.white.opacity(0.5), lineWidth: 2)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.06)))
+                    .overlay(
+                        Text(vm.isFrontMeasurement
+                             ? "Front of Vehicle / جلوی ماشین"
+                             : "Rear of Vehicle / عقب ماشین")
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                    )
+                    .frame(height: geo.size.height * 0.22)
+                    .padding(.horizontal, 40)
+            }
+            .padding(.top, 56)    // clear status banner
+            .padding(.bottom, 72) // clear control bar
+        }
+        .allowsHitTesting(false)
+    }
+
     private var controlBar: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 16) {
             Button("Reset") {
                 vm.reset()
             }
             .buttonStyle(.bordered)
             .tint(.white)
+
+            // [UX] Front/rear toggle — switches which vehicle edge is being measured
+            Button(vm.isFrontMeasurement ? "⇄ Front" : "⇄ Rear") {
+                vm.toggleMeasurementDirection()
+            }
+            .buttonStyle(.bordered)
+            .tint(.yellow)
 
             Button(vm.isEvaluating ? "Evaluating…" : "Evaluate") {
                 guard let frame = currentFrame else { return }
@@ -248,9 +349,9 @@ struct VerticalSliceRootView: View {
 
                 Divider()
 
-                // Per-family disclosure — pedestrian_crossing_5m
+                // Per-family disclosure — dynamic per rule family
                 // Source: user_disclosures_and_copy.md section 7
-                Text("This result evaluates only the 5-metre stopping/parking restriction near a pedestrian crossing. Other restrictions at this location may also apply.")
+                Text(perFamilyDisclosure(for: result.measurement?.ruleFamily))
                     .font(.caption2)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -307,6 +408,24 @@ struct VerticalSliceRootView: View {
         }
     }
 
+    // MARK: - Per-family disclosure per user_disclosures_and_copy.md section 7
+
+    // [FIX-3] Dynamic disclosure text keyed to the evaluated rule family.
+    private func perFamilyDisclosure(for ruleFamily: String?) -> String {
+        switch ruleFamily {
+        case "intersection_10m":
+            return "This result evaluates only the 10-metre stopping/parking restriction near an intersection. Other restrictions at this location may also apply."
+        case "pedestrian_crossing_5m":
+            return "This result evaluates only the 5-metre stopping/parking restriction near a pedestrian crossing. Other restrictions at this location may also apply."
+        case "cycle_path_exit_5m":
+            return "This result evaluates only the 5-metre restriction near a cycle-path exit. Other restrictions at this location may also apply."
+        case "bus_stop_12m_fallback", "bus_stop_marked_segment":
+            return "This result evaluates only the bus-stop stopping/parking restriction. Other restrictions at this location may also apply."
+        default:
+            return "This result evaluates only the specific supported restriction checked. Other restrictions at this location may also apply."
+        }
+    }
+
     // MARK: - Human-readable refusal explanation per user_disclosures_and_copy.md section 4
 
     private func refusalExplanation(for code: RefusalReasonCode) -> String {
@@ -321,36 +440,4 @@ struct VerticalSliceRootView: View {
             return "Part of the vehicle\u2019s edge relevant to this measurement is not visible. Try repositioning to see the full side of the vehicle."
         case .boundaryUnresolved:
             return "The relevant legal boundary could not be clearly identified in this scene. Try to include the crossing, cycle path, intersection edge, or bus-stop sign in the frame."
-        case .featureCandidateAmbiguous:
-            return "Multiple nearby features matched the scene. The system could not safely select which one to evaluate. Try repositioning to make the relevant feature clearer."
-        case .visibleUnsupportedRestriction:
-            return "A sign or marking visible in the scene is not supported by this app\u2019s evaluation scope. The system cannot confirm compliance with that restriction."
-        case .noActiveDatasetRegion:
-            return "No active map data is available for this location. You may need to download the region dataset."
-        case .insufficientEvidenceGeneral:
-            return "There was not enough evidence to evaluate safely. Try repositioning and retrying."
-        }
-    }
-
-    // MARK: - Retry guidance per user_disclosures_and_copy.md section 5
-
-    private func retryGuidance(for reasons: [RefusalReasonCode]) -> String {
-        guard let first = reasons.first else {
-            return "For a better result: try repositioning for a clearer view of the vehicle and the relevant boundary, then capture again."
-        }
-        switch first {
-        case .arScaleUntrusted, .planeUnstable:
-            return "For a better result: hold your phone at a slight downward angle so the ground is clearly visible. Move slowly and wait for the AR indicator to stabilize before capturing."
-        case .targetEdgeOccluded:
-            return "For a better result: move to a position where you can clearly see the full side of the vehicle closest to the relevant boundary."
-        case .targetAmbiguous:
-            return "For a better result: move closer to the specific vehicle you want to evaluate."
-        case .boundaryUnresolved, .featureCandidateAmbiguous:
-            return "For a better result: reposition so the relevant feature (crossing, cycle path, intersection, or bus-stop sign) is clearly visible in the frame alongside the vehicle."
-        case .visibleUnsupportedRestriction:
-            return "This app cannot evaluate the restriction visible in the scene. Check the app\u2019s supported scope for what it can and cannot evaluate."
-        default:
-            return "For a better result: try repositioning for a clearer view of the vehicle and the relevant boundary, then capture again."
-        }
-    }
-}
+  

@@ -848,4 +848,4 @@ Android SDK additions (`android/DKParkingSDK/src/main/kotlin/com/dkparking/sdk/b
 - Supabase: run `backend/supabase/schema.sql` in SQL Editor
 - Supabase: create `dataset-bundles` storage bucket
 
-
+--

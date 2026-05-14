@@ -100,6 +100,12 @@ public final class ARMeasurementSession: NSObject {
     private var sessionStartTime: Date?
     private var lastWorldOriginResetTime: Date?
 
+    // [FIX-2] Track primary plane center history for variance-based stability scoring.
+    // Per ar_measurement_strategy.md §3.2: "Consistency of the plane transform across
+    // recent frames (low variance = high stability)".
+    private var planeCenterHistory: [simd_float3] = []
+    private let maxPlaneCenterHistoryCount = 10
+
     public init(policy: PolicyRegistry) {
         self.policy = policy
     }
@@ -173,10 +179,51 @@ public final class ARMeasurementSession: NSObject {
         }
     }
 
+    // [FIX-2] Revised plane stability scoring per ar_measurement_strategy.md §3.2.
+    // Combines: tracking quality (metricScaleScore) + plane transform variance over
+    // recent frames. Low variance across history → high stability score.
     private func planeStabilityScore(from frame: ARFrame) -> Double {
         guard !detectedPlanes.isEmpty else { return 0.0 }
+
+        // Record the center of the largest detected plane (primary plane).
+        if let primary = detectedPlanes.max(by: {
+            $0.planeExtent.width * $0.planeExtent.height < $1.planeExtent.width * $1.planeExtent.height
+        }) {
+            let col = primary.transform.columns.3
+            let center = simd_float3(col.x, col.y, col.z)
+            planeCenterHistory.append(center)
+            if planeCenterHistory.count > maxPlaneCenterHistoryCount {
+                planeCenterHistory.removeFirst()
+            }
+        }
+
         let baseScore = metricScaleScore(from: frame)
-        return min(1.0, baseScore * 0.9 + 0.1 * Double(min(detectedPlanes.count, 3)) / 3.0)
+
+        // Compute positional variance (XZ plane only — Y/height noise is expected).
+        let varianceScore: Double
+        if planeCenterHistory.count >= 3 {
+            let xs = planeCenterHistory.map { Double($0.x) }
+            let zs = planeCenterHistory.map { Double($0.z) }
+            let varX = sampleVariance(xs)
+            let varZ = sampleVariance(zs)
+            let totalVariance = varX + varZ
+            // Map to score: 0m variance → 1.0; ≥0.05m variance → 0.0 (5cm threshold).
+            varianceScore = max(0.0, 1.0 - totalVariance / 0.05)
+        } else {
+            // Not enough history yet — give a conservative partial score.
+            varianceScore = 0.4
+        }
+
+        // Weighted combination: 60% tracking quality, 40% plane stability.
+        return min(1.0, baseScore * 0.6 + varianceScore * 0.4)
+    }
+
+    /// Sample variance of a sequence of Double values.
+    private func sampleVariance(_ values: [Double]) -> Double {
+        guard values.count > 1 else { return 0.0 }
+        let mean = values.reduce(0, +) / Double(values.count)
+        let squaredDiffs = values.map { ($0 - mean) * ($0 - mean) }
+        return squaredDiffs.reduce(0, +) / Double(values.count - 1)
     }
 
     // MARK: - Metric distance measurement
@@ -193,68 +240,4 @@ public final class ARMeasurementSession: NSObject {
         let signedMarginM = distanceM - input.legalThresholdM
 
         let errorComponents = errorBudget(for: input.boundaryProvenance)
-        let totalError = errorComponents.total
-
-        guard totalError <= 2.0 else { return nil }
-
-        return MeasurementOutput(
-            measuredDistanceM: distanceM,
-            signedMarginM: signedMarginM,
-            totalEstimatedErrorM: totalError,
-            errorComponents: errorComponents
-        )
-    }
-
-    private func perpendicularDistance(point: SIMD2<Float>, lineStart: SIMD2<Float>, lineEnd: SIMD2<Float>) -> Float {
-        let lineVec = lineEnd - lineStart
-        let lenSq = simd_dot(lineVec, lineVec)
-        guard lenSq > 0 else {
-            return simd_length(point - lineStart)
-        }
-        let t = max(0, min(1, simd_dot(point - lineStart, lineVec) / lenSq))
-        let projection = lineStart + t * lineVec
-        return simd_length(point - projection)
-    }
-
-    /// Error budget per ar_measurement_strategy.md section 5.1.
-    private func errorBudget(for provenance: BoundaryProvenance) -> MeasurementErrorComponents {
-        let boundaryLocalizationError: Double
-        switch provenance {
-        case .visualDetection:
-            boundaryLocalizationError = 0.20
-        case .mapPriorAssisted:
-            boundaryLocalizationError = 0.50
-        case .mapPriorOnly:
-            boundaryLocalizationError = 1.20
-        }
-
-        return MeasurementErrorComponents(
-            arScaleErrorM: 0.18,
-            planeFitErrorM: 0.10,
-            vehicleEdgeLocalizationErrorM: 0.20,
-            boundaryLocalizationErrorM: boundaryLocalizationError
-        )
-    }
-}
-
-// MARK: - ARSessionDelegate
-
-extension ARMeasurementSession: ARSessionDelegate {
-    public func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
-        let planes = anchors.compactMap { $0 as? ARPlaneAnchor }
-        detectedPlanes.append(contentsOf: planes)
-    }
-
-    public func session(_ session: ARSession, didRemove anchors: [ARAnchor]) {
-        let removedIds = Set(anchors.compactMap { $0 as? ARPlaneAnchor }.map { $0.identifier })
-        detectedPlanes.removeAll { removedIds.contains($0.identifier) }
-    }
-
-    public func sessionWasInterrupted(_ session: ARSession) {
-        lastWorldOriginResetTime = Date()
-    }
-
-    public func sessionInterruptionEnded(_ session: ARSession) {
-        lastWorldOriginResetTime = Date()
-    }
-}
+        let totalError = e
