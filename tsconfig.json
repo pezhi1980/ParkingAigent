@@ -1,0 +1,19 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "paths": {
+      "@screens/*": ["src/screens/*"],
+      "@engine/*": ["src/engine/*"],
+      "@ml/*": ["src/ml/*"],
+      "@components/*": ["src/components/*"],
+      "@services/*": ["src/services/*"],
+      "@constants/*": ["src/constants/*"],
+      "@navigation/*": ["src/navigation/*"]
+    }
+  },
+  "include": ["src", "__tests__"],
+  "exclude": ["node_modules", "backend", "ml-training"]
+}
